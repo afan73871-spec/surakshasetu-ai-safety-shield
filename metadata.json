@@ -1,0 +1,8 @@
+{
+  "name": "SurakshaSetu: AI Safety Shield",
+  "description": "An all-in-one AI security companion for senior citizens and students, featuring deepfake detection, scam call blocking, and UPI payment safety.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
