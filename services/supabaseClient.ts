@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://igfjslukekjsyswgqyww.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_4VlO150U2rSJAg7W0T7DRQ_kphOKFUP';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://igfjslukekjsyswgqyww.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnZmpzbHVrZWtqc3lzd2dxeXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMDUyOTMsImV4cCI6MjA4NDU4MTI5M30.rixXVzNXcoS5BHmNoyshL0ROhIpDqwT6beAQyYItCek';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -29,14 +29,15 @@ export const syncProfile = async (email: string, updates: any) => {
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from('profiles')
-      .upsert({ 
-        email, 
-        ...updates, 
-        updated_at: now 
+      .upsert({
+        email,
+        ...updates,
+        // Ensure user_id is included if provided in updates
+        updated_at: now
       }, { onConflict: 'email' })
       .select()
       .single();
-    
+
     if (error) {
       console.error("Supabase Sync Error:", error.message);
       if (error.message.includes('updated_at')) {
@@ -58,8 +59,8 @@ export const getProfile = async (email: string) => {
       .select('*')
       .eq('email', email)
       .single();
-    
-    if (error && error.code !== 'PGRST116') throw error; 
+
+    if (error && error.code !== 'PGRST116') throw error;
     return data;
   } catch (err) {
     return null;
@@ -87,7 +88,7 @@ export const createOrderRecord = async (orderData: {
         created_at: new Date().toISOString()
       }])
       .select();
-    
+
     if (error) throw error;
     return data;
   } catch (err) {
@@ -110,7 +111,7 @@ export const createScamReportDb = async (report: any) => {
         created_at: new Date().toISOString()
       }])
       .select();
-    
+
     if (error) throw error;
     return data;
   } catch (err) {

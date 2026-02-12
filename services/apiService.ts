@@ -32,7 +32,7 @@ export const apiClient = {
           token_id: token,
           status: 'PENDING'
         }]);
-      
+
       if (error) throw error;
       return { success: true, token };
     } catch (err: any) {
@@ -47,7 +47,7 @@ export const apiClient = {
         .from('support_requests')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data || [];
     } catch (err) {
@@ -81,7 +81,7 @@ export const apiClient = {
           target_email: parentEmail,
           relation_type: relation
         }], { onConflict: 'guardian_email,target_email' });
-      
+
       if (error) throw error;
       return { success: true };
     } catch (err: any) {
@@ -95,7 +95,7 @@ export const apiClient = {
         .from('family_links')
         .select('target_email, relation_type')
         .eq('guardian_email', childEmail);
-      
+
       if (linkError || !links) return [];
 
       const targetEmails = links.map(l => l.target_email);
@@ -103,7 +103,7 @@ export const apiClient = {
         .from('profiles')
         .select('email, name, safety_status, last_location, battery_level, updated_at, lat, lng')
         .in('email', targetEmails);
-      
+
       if (profileError || !profiles) return [];
 
       return profiles.map(p => ({
@@ -151,9 +151,12 @@ export const apiClient = {
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        console.error("Supabase Order Fetch Error:", error);
+        throw error;
+      }
+
       return (data || []).map((order: any) => ({
         id: order.id,
         email: order.user_email,
@@ -175,26 +178,26 @@ export const apiClient = {
         .select('user_email')
         .eq('id', id)
         .single();
-      
+
       if (orderError) throw orderError;
 
       const { error: updateOrderError } = await supabase
         .from('orders')
         .update({ status: 'APPROVED' })
         .eq('id', id);
-      
+
       if (updateOrderError) throw updateOrderError;
 
       const { error: updateProfileError } = await supabase
         .from('profiles')
-        .update({ 
-          is_pro: true, 
-          plan_selected: true, 
+        .update({
+          is_pro: true,
+          plan_selected: true,
           plan_type: 'PRO',
           updated_at: new Date().toISOString()
         })
         .eq('email', order.user_email);
-      
+
       if (updateProfileError) throw updateProfileError;
 
       return { success: true };
@@ -209,7 +212,7 @@ export const apiClient = {
         .from('orders')
         .update({ status: 'REJECTED' })
         .eq('id', id);
-      
+
       if (error) throw error;
       return { success: true };
     } catch (err: any) {
@@ -220,13 +223,24 @@ export const apiClient = {
   async post(endpoint: string, data: any): Promise<{ success: boolean; user?: any; message?: string; data?: any }> {
     if (endpoint === '/auth/register') {
       try {
-        const profile = await syncProfile(data.email, {
-          name: data.name,
-          security_level: 'Standard',
-          is_pro: false,
-          plan_selected: false
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password || 'TemporaryPassword123!', // Ensure password is provided or handle appropriately
         });
-        return { success: true, user: profile, message: "Registry created successfully." };
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+          await syncProfile(data.email, {
+            name: data.name,
+            security_level: 'Standard',
+            is_pro: false,
+            plan_selected: false,
+            user_id: authData.user.id
+          });
+        }
+
+        return { success: true, user: authData.user, message: "Registry created successfully. Please check your email." };
       } catch (err: any) {
         return { success: false, message: err.message };
       }
@@ -234,19 +248,94 @@ export const apiClient = {
 
     if (endpoint === '/auth/login') {
       try {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+
+        if (authError) throw authError;
+
         let profile = await getProfile(data.email);
-        
-        if (data.isSocial && !profile) {
+
+        // Auto-create profile if missing (e.g., specific auth scenarios)
+        if (!profile && authData.user) {
           profile = await syncProfile(data.email, {
-            name: data.name || 'Citizen',
-            security_level: 'Standard',
-            is_pro: false,
-            plan_selected: false
+            name: 'Citizen',
+            user_id: authData.user.id
           });
         }
 
-        if (profile) {
-          return { success: true, user: profile, message: "Handshake successful." };
+        if (profile || authData.user) {
+          return { success: true, user: profile || authData.user, message: "Handshake successful." };
+        }
+      } catch (err: any) {
+        return { success: false, message: err.message };
+      }
+    }
+
+    if (endpoint === '/auth/send-otp') {
+      // Mock Auth Bypass for Testing
+      if (data.email === 'test@suraksha.com') {
+        return { success: true, message: "DEV MODE: OTP Sent (Use 123456)" };
+      }
+
+      try {
+        // Use live domain for redirect if we are not on localhost
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const redirectTo = isLocal ? window.location.origin : 'https://surakshasetu.site';
+
+        const { error } = await supabase.auth.signInWithOtp({
+          email: data.email,
+          options: {
+            emailRedirectTo: redirectTo,
+            shouldCreateUser: true,
+          }
+        });
+
+        if (error) throw error;
+        return { success: true, message: "OTP Sent Successfully. Check your email." };
+      } catch (err: any) {
+        console.error("Supabase OTP Error:", err);
+        return { success: false, message: err.message || "Failed to send OTP. Check console for details." };
+      }
+    }
+
+    if (endpoint === '/auth/verify-otp') {
+      // Mock Auth Bypass for Testing
+      if (data.email === 'test@suraksha.com' && data.otp === '123456') {
+        return {
+          success: true,
+          user: {
+            id: 'mock-test-id',
+            email: 'test@suraksha.com',
+            name: data.name || 'Test User',
+            isPro: true
+          },
+          message: "DEV MODE: Login Successful."
+        };
+      }
+
+      try {
+        const { data: authData, error } = await supabase.auth.verifyOtp({
+          email: data.email,
+          token: data.otp,
+          type: 'email',
+        });
+
+        if (error) throw error;
+
+        let profile = await getProfile(data.email);
+
+        // Auto-create profile if missing
+        if (!profile && authData.user) {
+          profile = await syncProfile(data.email, {
+            name: data.name || 'Citizen',
+            user_id: authData.user.id
+          });
+        }
+
+        if (profile || authData.user) {
+          return { success: true, user: profile || authData.user, message: "Verification Successful." };
         }
       } catch (err: any) {
         return { success: false, message: err.message };
@@ -300,7 +389,7 @@ export const apiClient = {
           currency: 'INR',
           created_at: new Date().toISOString()
         }]);
-      
+
       if (error) throw error;
       return { success: true };
     } catch (err: any) {
