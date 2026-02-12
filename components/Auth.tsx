@@ -16,14 +16,25 @@ interface AuthProps {
 export const Auth: React.FC<AuthProps> = ({ onLogin, onGuestLogin }) => {
   const [view, setView] = useState<AuthView>(AuthView.LOGIN);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [name, setName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+  const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      timerRef.current = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [resendTimer]);
 
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const CLIENT_ID = "135243081709-nk8oe25slhsbppgma7luo1vetttogaii.apps.googleusercontent.com";
@@ -105,6 +116,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onGuestLogin }) => {
         const result = await apiClient.post('/auth/send-otp', { email });
         if (result.success) {
           setOtpSent(true);
+          setResendTimer(60); // 60 seconds cooldown
         } else {
           setErrorMessage(result.message || "Failed to send OTP.");
         }
@@ -218,19 +230,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onGuestLogin }) => {
                   className="w-full bg-white/5 border-2 border-white/10 rounded-[24px] py-5 pl-14 pr-6 outline-none focus:border-indigo-400 focus:bg-white/10 transition-all font-bold text-white placeholder:text-white/30"
                 />
               </div>
-
-              <div className="relative group">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-indigo-400 transition-colors" size={18} />
-                <input
-                  required
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Access Key"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border-2 border-white/10 rounded-[24px] py-5 pl-14 pr-14 outline-none focus:border-indigo-400 focus:bg-white/10 transition-all font-bold text-white placeholder:text-white/30"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-              </div>
             </>
           )}
 
@@ -254,13 +253,23 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onGuestLogin }) => {
           </button>
 
           {otpSent && (
-            <button
-              type="button"
-              onClick={() => setOtpSent(false)}
-              className="w-full py-2 text-[9px] font-black uppercase text-indigo-300 tracking-[0.2em] hover:text-white transition-colors"
-            >
-              Change Email / Resend
-            </button>
+            <div className="text-center space-y-4">
+              <button
+                type="button"
+                disabled={resendTimer > 0 || isLoading}
+                onClick={handleSubmit}
+                className="w-full py-2 text-[9px] font-black uppercase text-indigo-300 tracking-[0.2em] hover:text-white transition-colors disabled:opacity-50"
+              >
+                {resendTimer > 0 ? `Resend Available in ${resendTimer}s` : 'Resend Code Now'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOtpSent(false); setOtp(''); }}
+                className="w-full py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em] hover:text-white transition-colors"
+              >
+                Change Email Address
+              </button>
+            </div>
           )}
         </form>
 

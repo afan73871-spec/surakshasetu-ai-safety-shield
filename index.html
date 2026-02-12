@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suraksha Setu AI - National Cyber Security Guard</title>
-  
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9QPN7B28Y6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-9QPN7B28Y6');
@@ -18,12 +19,13 @@
   <!-- Logo in Title Bar (Favicon) -->
   <link rel="icon" type="image/png" href="input_file_0.png">
   <link rel="apple-touch-icon" href="input_file_0.png">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
   <style>
     body {
       font-family: 'Lexend', sans-serif;
@@ -31,59 +33,73 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
+
     img {
       max-width: 100%;
       height: auto;
       content-visibility: auto;
     }
+
     @keyframes scan {
-      0% { top: 0; }
-      50% { top: 100%; }
-      100% { top: 0; }
+      0% {
+        top: 0;
+      }
+
+      50% {
+        top: 100%;
+      }
+
+      100% {
+        top: 0;
+      }
     }
+
     .hide-scrollbar::-webkit-scrollbar {
       display: none;
     }
+
     .hide-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
     @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.5; }
-      50% { transform: scale(1.05); opacity: 0.2; }
-      100% { transform: scale(0.95); opacity: 0.5; }
+      0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 0.2;
+      }
+
+      100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
     }
+
     .animate-pulse-ring {
       animation: pulse-ring 2s infinite ease-in-out;
     }
+
     /* Optimization for image loading */
     .img-loading {
       filter: blur(10px);
       transition: filter 0.3s ease-out;
     }
+
     .img-loaded {
       filter: blur(0);
     }
   </style>
-<script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.91.0",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "@huggingface/inference": "https://esm.sh/@huggingface/inference@^4.13.11"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
+
 <body>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * SurakshaSetu Database Controller
@@ -34,7 +38,7 @@ const writeDB = (data) => {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 };
 
-module.exports = {
+const dbMethods = {
   // User Management
   findUserByEmail: (email) => {
     const db = readDB();
@@ -86,7 +90,7 @@ module.exports = {
   getScamRegistry: (query = '') => {
     const db = readDB();
     if (!query) return db.scamRegistry;
-    return db.scamRegistry.filter(s => 
+    return db.scamRegistry.filter(s =>
       s.identifier.toLowerCase().includes(query.toLowerCase())
     );
   },
@@ -105,3 +109,5 @@ module.exports = {
     return newEntry;
   }
 };
+
+export default dbMethods;

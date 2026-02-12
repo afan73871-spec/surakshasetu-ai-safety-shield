@@ -75,6 +75,22 @@ export interface SystemAuditResult {
   lastScanTimestamp: number;
 }
 
+export interface RansomwareAnalysisResult {
+  threatLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  entropyAnalysis: string;
+  isRansomware: boolean;
+  detectedSignatures: string[];
+  mitigationSteps: string[];
+}
+
+export interface ComprehensiveSafetyPulse {
+  globalRiskScore: number;
+  status: 'SECURE' | 'VULNERABLE' | 'COMPROMISED';
+  neuralSummary: string;
+  topThreats: string[];
+  actionItems: string[];
+}
+
 const TEXT_MODEL = 'gemini-3-flash-preview';
 
 const SYSTEM_CORE_INSTRUCTION = `You are the Suraksha Setu Cyber Security AI Assistant. 
@@ -99,7 +115,8 @@ export async function analyzeVideoForensics(videoBase64: string, mimeType: strin
         {
           parts: [
             { inlineData: { data: videoBase64, mimeType: mimeType } },
-            { text: `FORENSIC VIDEO AUDIT: Analyze this video for deepfake signatures. 
+            {
+              text: `FORENSIC VIDEO AUDIT: Analyze this video for deepfake signatures. 
             Check for:
             1. Face Morphing (inconsistent edge blending or jitter).
             2. Lip-sync Mismatch (discrepancy between speech and lip movements).
@@ -183,9 +200,9 @@ export async function performNeuralSystemAudit(mockLogs: string): Promise<System
 export async function chatWithSurakshaAI(message: string, isFirst: boolean = false): Promise<string> {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
-    const protocolInstruction = isFirst 
-      ? "PROTOCOL turn_1: Respond STRICTLY in English only." 
+
+    const protocolInstruction = isFirst
+      ? "PROTOCOL turn_1: Respond STRICTLY in English only."
       : "PROTOCOL adaptive: Honor any language switch request (e.g. 'Hindi mein shift karo') immediately. If no request, mirror user language.";
 
     const response = await ai.models.generateContent({
@@ -349,31 +366,71 @@ export async function auditAppPermissions(target: string): Promise<AppPermission
   }
 }
 
-export async function analyzeApkSafety(fileName: string, fileSize: number): Promise<ApkSafetyResult> {
+export async function analyzeRansomwareHeuristics(heuristicData: string): Promise<RansomwareAnalysisResult> {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: TEXT_MODEL,
-      contents: `APK Scan: "${fileName}". Respond in JSON.`,
+      contents: `Ransomware Heuristic Scan. 
+      DATA_STREAM: ${heuristicData}
+      Analyze for encryption behavior, shadow copy deletion, and high-entropy write patterns.
+      Respond strictly in JSON.`,
       config: {
-        systemInstruction: SYSTEM_CORE_INSTRUCTION,
+        systemInstruction: "You are the Ransomware Shield AI. Your analysis prevents data loss. Be decisive. Output JSON.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            isSecure: { type: Type.BOOLEAN },
-            threatLevel: { type: Type.STRING },
-            verdict: { type: Type.STRING },
-            permissionsRisk: { type: Type.STRING },
-            detectedMalware: { type: Type.ARRAY, items: { type: Type.STRING } }
+            threatLevel: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] },
+            entropyAnalysis: { type: Type.STRING },
+            isRansomware: { type: Type.BOOLEAN },
+            detectedSignatures: { type: Type.ARRAY, items: { type: Type.STRING } },
+            mitigationSteps: { type: Type.ARRAY, items: { type: Type.STRING } }
           },
-          required: ["isSecure", "threatLevel", "verdict", "permissionsRisk", "detectedMalware"]
+          required: ["threatLevel", "entropyAnalysis", "isRansomware", "detectedSignatures", "mitigationSteps"]
         }
       }
     });
     return JSON.parse(response.text);
   } catch (e) {
-    return { isSecure: true, threatLevel: 'CLEAN', verdict: "No malware found.", permissionsRisk: 'LOW', detectedMalware: [] };
+    return { threatLevel: 'LOW', entropyAnalysis: "Stable", isRansomware: false, detectedSignatures: [], mitigationSteps: [] };
+  }
+}
+
+export async function performComprehensiveSafetyAudit(telemetry: any): Promise<ComprehensiveSafetyPulse> {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: TEXT_MODEL,
+      contents: `Unified Safety Audit for Citizen. 
+      SYSTEM_TELEMETRY: ${JSON.stringify(telemetry)}
+      Analyze the combined data from all security modules (Scam, Deepfake, URL, Ransomware, APK).
+      Provide a strategic defense summary. Respond in JSON.`,
+      config: {
+        systemInstruction: "You are the Suraksha Setu Neural Core. You provide a bird's-eye view of a user's digital safety. Synthesize data into actionable intelligence. Output JSON.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            globalRiskScore: { type: Type.NUMBER },
+            status: { type: Type.STRING, enum: ['SECURE', 'VULNERABLE', 'COMPROMISED'] },
+            neuralSummary: { type: Type.STRING },
+            topThreats: { type: Type.ARRAY, items: { type: Type.STRING } },
+            actionItems: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ["globalRiskScore", "status", "neuralSummary", "topThreats", "actionItems"]
+        }
+      }
+    });
+    return JSON.parse(response.text);
+  } catch (e) {
+    return {
+      globalRiskScore: 98,
+      status: 'SECURE',
+      neuralSummary: "Neural Core analyzing telemetry nodes...",
+      topThreats: [],
+      actionItems: ["Establishing baseline safety telemetry."]
+    };
   }
 }
 

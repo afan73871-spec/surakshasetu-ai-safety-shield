@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Smartphone, MessageCircle, AlertTriangle, ShieldCheck, 
-  PhoneCall, Radio, Activity, Terminal, Zap, ShieldAlert, 
-  Mic, Search, Info, Fingerprint, Waves, BrainCircuit, 
+import {
+  Smartphone, MessageCircle, AlertTriangle, ShieldCheck,
+  PhoneCall, Radio, Activity, Terminal, Zap, ShieldAlert,
+  Mic, Search, Info, Fingerprint, Waves, BrainCircuit,
   Lock, RefreshCw, BarChart3, Volume2, ShieldX
 } from 'lucide-react';
 import { analyzeScamContext, AnalysisResult } from '../services/geminiService';
@@ -41,7 +41,7 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
     setIsLoading(true);
     addLog("Connecting to Neural Registry...");
     addLog("Extracting Context Signatures...");
-    
+
     try {
       const result = await analyzeScamContext(text);
       setAnalysis(result);
@@ -75,9 +75,9 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
     let i = 0;
     const interval = setInterval(() => {
       setLiveTranscript(prev => prev + (i === 0 ? '' : ' ') + words[i]);
-      
+
       if (i % 4 === 0) {
-        addLog(`Analyzing Audio Packet ${Math.floor(i/4)+1}...`);
+        addLog(`Analyzing Audio Packet ${Math.floor(i / 4) + 1}...`);
         setStressLevel(prev => Math.min(prev + (Math.random() * 15), 95));
       }
 
@@ -110,13 +110,13 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
       </div>
 
       <div className="flex bg-slate-100 p-1.5 rounded-[28px] border border-slate-200 shadow-sm">
-        <button 
+        <button
           onClick={() => { setActiveTab('SMS'); setAnalysis(null); setLiveTranscript(''); }}
           className={`flex-1 py-4 rounded-[22px] text-[11px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'SMS' ? 'bg-white text-indigo-600 shadow-lg' : 'text-slate-500'}`}
         >
           <MessageCircle size={16} /> SMS Context
         </button>
-        <button 
+        <button
           onClick={() => { setActiveTab('CALL'); setAnalysis(null); setLiveTranscript(''); }}
           className={`flex-1 py-4 rounded-[22px] text-[11px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'CALL' ? 'bg-white text-indigo-600 shadow-lg' : 'text-slate-500'}`}
         >
@@ -150,25 +150,25 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
       ) : (
         <div className="bg-slate-950 rounded-[48px] p-8 text-white relative overflow-hidden shadow-2xl min-h-[520px] flex flex-col justify-between border border-white/5">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(79,70,229,0.1),transparent)] pointer-events-none" />
-          
+
           <div className="relative z-10 space-y-8">
             <div className="flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${isIntercepting ? 'bg-red-600 animate-pulse' : 'bg-white/5 border border-white/10'}`}>
-                   {isIntercepting ? <Activity size={28} /> : <Waves size={28} className="text-indigo-400" />}
-                 </div>
-                 <div>
-                   <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Live Voice Guard</h4>
-                   <p className="text-sm font-black text-white">{isIntercepting ? 'Listening to Call...' : 'Neural Engine Ready'}</p>
-                 </div>
-               </div>
-               <div className="text-right">
-                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Protection Status</h4>
-                 <div className="flex items-center gap-1.5 justify-end">
-                    <span className="text-[9px] font-black uppercase text-indigo-300">Pro Shield</span>
-                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]" />
-                 </div>
-               </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${isIntercepting ? 'bg-red-600 animate-pulse' : 'bg-white/5 border border-white/10'}`}>
+                  {isIntercepting ? <Activity size={28} /> : <Waves size={28} className="text-indigo-400" />}
+                </div>
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Live Voice Guard</h4>
+                  <p className="text-sm font-black text-white">{isIntercepting ? 'Listening to Call...' : 'Neural Engine Ready'}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Protection Status</h4>
+                <div className="flex items-center gap-1.5 justify-end">
+                  <span className="text-[9px] font-black uppercase text-indigo-300">Pro Shield</span>
+                  <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,1)]" />
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -195,53 +195,53 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
             </div>
 
             <div className="bg-black/50 border border-white/5 rounded-[32px] p-6 font-mono text-[11px] space-y-3 min-h-[160px] max-h-[200px] overflow-y-auto hide-scrollbar relative">
-               <div className="sticky top-0 bg-black/80 backdrop-blur-md -mx-6 -mt-6 p-4 border-b border-white/5 flex items-center justify-between mb-4">
-                 <div className="flex items-center gap-2">
-                    <Terminal size={12} className="text-indigo-400" />
-                    <span className="text-[9px] font-black uppercase text-slate-400">Analysis Console</span>
-                 </div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-               </div>
-               
-               {apiLogs.map((log, i) => (
-                 <div key={i} className="text-indigo-300 flex items-start gap-2 animate-in slide-in-from-left-2 duration-300">
-                   <span className="opacity-40">[{new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}]</span>
-                   <span>{log}</span>
-                 </div>
-               ))}
-               
-               {isIntercepting && (
-                 <p className="text-white font-medium italic mt-6 leading-relaxed opacity-90 border-l-2 border-indigo-500 pl-3 animate-in fade-in duration-1000">
-                    "{liveTranscript}"
-                 </p>
-               )}
+              <div className="sticky top-0 bg-black/80 backdrop-blur-md -mx-6 -mt-6 p-4 border-b border-white/5 flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Terminal size={12} className="text-indigo-400" />
+                  <span className="text-[9px] font-black uppercase text-slate-400">Analysis Console</span>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              </div>
+
+              {apiLogs.map((log, i) => (
+                <div key={i} className="text-indigo-300 flex items-start gap-2 animate-in slide-in-from-left-2 duration-300">
+                  <span className="opacity-40">[{new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}]</span>
+                  <span>{log}</span>
+                </div>
+              ))}
+
+              {isIntercepting && (
+                <p className="text-white font-medium italic mt-6 leading-relaxed opacity-90 border-l-2 border-indigo-500 pl-3 animate-in fade-in duration-1000">
+                  "{liveTranscript}"
+                </p>
+              )}
             </div>
           </div>
 
           <div className="relative z-10 pt-4">
             {!isIntercepting && !analysis ? (
-              <button 
+              <button
                 onClick={startLiveIntercept}
                 className="w-full py-6 bg-indigo-600 text-white rounded-[32px] font-black text-xs uppercase tracking-[0.3em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
               >
                 <Smartphone size={20} /> INITIATE VOICE GUARD
               </button>
             ) : isIntercepting ? (
-              <button 
+              <button
                 disabled
                 className="w-full py-6 bg-red-600/20 text-red-500 border border-red-500/30 rounded-[32px] font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3"
               >
                 <Volume2 size={20} className="animate-pulse" /> SCANNING LIVE CONTEXT...
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => { setAnalysis(null); setApiLogs([]); setLiveTranscript(''); setStressLevel(0); }}
                 className="w-full py-6 bg-white/10 text-white border border-white/10 rounded-[32px] font-black text-xs uppercase tracking-[0.3em] active:scale-95 transition-all"
               >
                 RE-ARM INTERCEPTOR
               </button>
             )}
-            
+
             <p className="text-center text-[8px] text-slate-500 font-bold uppercase tracking-[0.4em] mt-6 flex items-center justify-center gap-2">
               <ShieldCheck size={10} /> ENGINE: SURAKSHA NEURAL HUB 4.5
             </p>
@@ -261,8 +261,8 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
                   {analysis.isScam ? 'Threat Identified' : 'Context Verified'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
-                   <div className={`w-1.5 h-1.5 rounded-full ${analysis.riskScore > 80 ? 'bg-red-500' : 'bg-indigo-500'}`} />
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI Confidence: {analysis.riskScore}%</p>
+                  <div className={`w-1.5 h-1.5 rounded-full ${analysis.riskScore > 80 ? 'bg-red-500' : 'bg-indigo-500'}`} />
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI Confidence: {analysis.riskScore}%</p>
                 </div>
               </div>
             </div>
@@ -272,7 +272,7 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
             <div className="bg-white/60 backdrop-blur-md p-5 rounded-[28px] border border-black/5">
               <p className="text-sm text-slate-800 font-bold leading-relaxed">"{analysis.reason}"</p>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {analysis.detectedTactics.map((tactic, idx) => (
                 <span key={idx} className="bg-white px-3 py-1.5 rounded-full border border-black/5 text-[9px] font-black uppercase tracking-widest text-slate-600 flex items-center gap-1.5 shadow-sm">
@@ -282,11 +282,23 @@ export const ScamMonitor: React.FC<ScamMonitorProps> = ({ isPro }) => {
             </div>
 
             <div className="bg-indigo-900 text-white p-6 rounded-[32px] space-y-2 shadow-xl">
-               <h5 className="text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
-                 <ShieldCheck size={14} /> Protective Guidance
-               </h5>
-               <p className="text-xs font-bold leading-relaxed italic opacity-90">"{analysis.suggestion}"</p>
+              <h5 className="text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                <ShieldCheck size={14} /> Protective Guidance
+              </h5>
+              <p className="text-xs font-bold leading-relaxed italic opacity-90">"{analysis.suggestion}"</p>
             </div>
+
+            <button
+              onClick={() => {
+                const event = new CustomEvent('ask-suraksha-ai', {
+                  detail: { question: `Explain why this is a scam: "${analysis.reason}". Also provide detailed safety steps.` }
+                });
+                window.dispatchEvent(event);
+              }}
+              className="w-full py-4 bg-white border border-indigo-200 rounded-[28px] text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <BrainCircuit size={16} /> Deep AI Explainer
+            </button>
           </div>
         </div>
       )}

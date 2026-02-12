@@ -1,11 +1,15 @@
 
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const crypto = require('crypto');
-const Razorpay = require('razorpay');
-const db = require('./database');
-const path = require('path');
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import crypto from 'crypto';
+import Razorpay from 'razorpay';
+import db from './database.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,7 +41,7 @@ app.post('/api/subscriptions/create', async (req, res) => {
 
   try {
     const subscription = await razorpay.subscriptions.create({
-      plan_id: plan_id, 
+      plan_id: plan_id,
       customer_notify: 1,
       total_count: 12,
       notes: {
@@ -52,9 +56,9 @@ app.post('/api/subscriptions/create', async (req, res) => {
     });
   } catch (error) {
     console.error('Razorpay SDK Error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.description || "Could not initialize subscription link." 
+    res.status(500).json({
+      success: false,
+      message: error.description || "Could not initialize subscription link."
     });
   }
 });
@@ -62,7 +66,7 @@ app.post('/api/subscriptions/create', async (req, res) => {
 app.post('/api/auth/upgrade', (req, res) => {
   const { email, plan_type } = req.body;
   if (!email) return res.status(400).json({ success: false, message: "Email required." });
-  
+
   const user = db.updateUserSubscription(email, 'active', 'manual_upgrade_' + Date.now());
   if (user) {
     console.log(`[AUTH] User upgraded to PRO: ${email}`);
@@ -103,7 +107,7 @@ app.post('/api/auth/register', (req, res) => {
   if (db.findUserByEmail(email)) {
     return res.status(400).json({ success: false, message: "Email already registered." });
   }
-  
+
   // Directly create the user without OTP verification
   const newUser = db.saveUser({
     id: 'u_' + Date.now(),
@@ -124,7 +128,7 @@ app.post('/api/auth/register', (req, res) => {
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   const user = db.findUserByEmail(email);
-  
+
   if (!user || user.password !== password) {
     return res.status(401).json({ success: false, message: "Invalid credentials." });
   }

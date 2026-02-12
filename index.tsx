@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+
+// Global Error Handler for Visual Feedback
+window.onerror = function (message, source, lineno, colno, error) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;';
+  errorDiv.textContent = 'NEURAL LINK ERROR: ' + message + '\nAt: ' + source + ':' + lineno;
+  document.body.appendChild(errorDiv);
+  return false;
+};
+
+window.onunhandledrejection = function (event) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = 'position:fixed;top:50px;left:0;width:100%;background:orange;color:black;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;';
+  errorDiv.textContent = 'UNHANDLED PROMISE REJECTION: ' + (event.reason?.message || event.reason);
+  document.body.appendChild(errorDiv);
+};
 import { AppView, Language, User as UserType } from './types';
 import { NAV_ITEMS, LANGUAGES, SOCIAL_HANDLES } from './constants';
 import { DeepfakeScanner } from './components/DeepfakeScanner';
@@ -19,20 +35,23 @@ import { FamilyGuard } from './components/FamilyGuard';
 import { SubscriptionPlans } from './components/SubscriptionPlans';
 import { APKScanner } from './components/APKScanner';
 import { AutomaticThreatDetector } from './components/AutomaticThreatDetector';
+import { RansomwareShield } from './components/RansomwareShield';
 import { apiClient } from './services/apiService';
 import { supabase } from './services/supabaseClient';
-import { 
-  ChevronRight, Database, Video, Smartphone, 
-  LogOut, User, BadgeCheck, Info, Waves, Rocket, Star, Zap, CreditCard, LifeBuoy, Sparkles, ArrowUpRight, ShieldAlert, Activity, Cpu, Globe, Terminal, ShieldCheck
+import {
+  ChevronRight, Database, Video, Smartphone,
+  LogOut, User, BadgeCheck, Info, Waves, Rocket, Star, Zap, CreditCard, LifeBuoy, Sparkles, ArrowUpRight, ShieldAlert, Activity, Cpu, Globe, Terminal, ShieldCheck, Lock, BrainCircuit, RefreshCw
 } from 'lucide-react';
 
 const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [currentUser, setCurrentUser] = useState<UserType | null>(() => {
     const saved = localStorage.getItem('suraksha_user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
   const [language, setLanguage] = useState<Language>(LANGUAGES[0]);
+  const [neuralPulse, setNeuralPulse] = useState<any | null>(null);
+  const [isPulseLoading, setIsPulseLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -48,7 +67,7 @@ const App: React.FC = () => {
         }
         const battery = Math.floor(Math.random() * 20) + 80;
         await apiClient.updateMyTelemetry(currentUser.email, 'SECURE', 'Neural Node Active', battery);
-      } catch (e) {}
+      } catch (e) { }
     };
 
     const interval = setInterval(syncPulse, 20000);
@@ -59,15 +78,37 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleNavDashboard = () => setCurrentView(AppView.DASHBOARD);
     const handleNavSubscription = () => setCurrentView(AppView.SUBSCRIPTION);
-    
+    const handleNavChat = () => setCurrentView(AppView.CHAT);
+
     window.addEventListener('nav-to-dashboard', handleNavDashboard);
     window.addEventListener('nav-to-subscription', handleNavSubscription);
-    
+    window.addEventListener('nav-to-chat', handleNavChat);
+
     return () => {
       window.removeEventListener('nav-to-dashboard', handleNavDashboard);
       window.removeEventListener('nav-to-subscription', handleNavSubscription);
+      window.removeEventListener('nav-to-chat', handleNavChat);
     };
   }, []);
+
+  useEffect(() => {
+    if (currentUser?.email) {
+      fetchNeuralPulse();
+    }
+  }, [currentUser]);
+
+  const fetchNeuralPulse = async () => {
+    if (!currentUser?.email) return;
+    setIsPulseLoading(true);
+    try {
+      const pulse = await apiClient.getNeuralSafetyPulse(currentUser.email);
+      setNeuralPulse(pulse);
+    } catch (e) {
+      console.error("Neural link timeout.");
+    } finally {
+      setIsPulseLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -103,102 +144,110 @@ const App: React.FC = () => {
       case AppView.PRIVACY_POLICY: return <PrivacyPolicyPage />;
       case AppView.SUBSCRIPTION: return <SubscriptionPlans onSelectPlan={handlePlanSelection} />;
       case AppView.ATDS: return <AutomaticThreatDetector />;
+      case AppView.RANSOMWARE_SHIELD: return <RansomwareShield onBack={() => setCurrentView(AppView.DASHBOARD)} />;
       case AppView.DASHBOARD:
       default:
         return (
           <div className="p-6 space-y-8 animate-in fade-in duration-500 pb-32">
-             <div className="bg-white rounded-[40px] p-8 text-slate-900 shadow-xl border border-indigo-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 opacity-50" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 bg-indigo-600 rounded-[22px] flex items-center justify-center shadow-lg text-white font-black text-2xl">
-                      {currentUser.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black tracking-tight text-slate-900">{currentUser.name}</h2>
-                      <div className="mt-1 flex items-center gap-2">
-                        {isPro ? (
-                          <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center gap-1.5 border border-indigo-200">
-                            <BadgeCheck size={12} className="text-indigo-600" />
-                            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Neural Pro Active</span>
-                          </div>
-                        ) : (
-                          <button onClick={() => setCurrentView(AppView.SUBSCRIPTION)} className="bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1.5 hover:bg-indigo-50 transition-colors group">
-                            <Zap size={12} className="text-indigo-400 group-hover:text-indigo-600 transition-colors" />
-                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-600">Standard Tier</span>
-                          </button>
-                        )}
-                      </div>
+            <div className="bg-white rounded-[40px] p-8 text-slate-900 shadow-xl border border-indigo-50 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 opacity-50" />
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 bg-indigo-600 rounded-[22px] flex items-center justify-center shadow-lg text-white font-black text-2xl">
+                    {currentUser.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight text-slate-900">{currentUser.name}</h2>
+                    <div className="mt-1 flex items-center gap-2">
+                      {isPro ? (
+                        <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center gap-1.5 border border-indigo-200">
+                          <BadgeCheck size={12} className="text-indigo-600" />
+                          <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Neural Pro Active</span>
+                        </div>
+                      ) : (
+                        <button onClick={() => setCurrentView(AppView.SUBSCRIPTION)} className="bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1.5 hover:bg-indigo-50 transition-colors group">
+                          <Zap size={12} className="text-indigo-400 group-hover:text-indigo-600 transition-colors" />
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-600">Standard Tier</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-                  {isPro && <Star size={24} className="text-amber-400 fill-amber-400 animate-pulse" />}
                 </div>
-             </div>
+                {isPro && <Star size={24} className="text-amber-400 fill-amber-400 animate-pulse" />}
+              </div>
+            </div>
 
-             {!isPro && (
-               <div className="bg-slate-950 rounded-[44px] p-8 text-white shadow-2xl relative overflow-hidden border border-white/10 group cursor-pointer active:scale-95 transition-all" onClick={() => setCurrentView(AppView.SUBSCRIPTION)}>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 blur-[80px] -mr-32 -mt-32 animate-pulse" />
-                  <div className="relative z-10 flex flex-col gap-4">
-                     <div className="flex justify-between items-start">
-                        <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg">
-                           <Zap size={24} className="text-white fill-white" />
-                        </div>
-                        <div className="bg-white/10 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
-                           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-400">Unlock Neural Shield</span>
-                        </div>
-                     </div>
-                     <div>
-                        <h3 className="text-2xl font-black tracking-tighter uppercase leading-tight">Neural Pro Upgrade</h3>
-                        <p className="text-xs text-slate-400 font-bold mt-1 opacity-80">Unlimited Deepfake Audits & Real-time Interception</p>
-                     </div>
-                     <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-400 group-hover:text-white transition-colors">
-                        Explore Membership <ArrowUpRight size={14} />
-                     </button>
+            {!isPro && (
+              <div className="bg-slate-950 rounded-[44px] p-8 text-white shadow-2xl relative overflow-hidden border border-white/10 group cursor-pointer active:scale-95 transition-all" onClick={() => setCurrentView(AppView.SUBSCRIPTION)}>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 blur-[80px] -mr-32 -mt-32 animate-pulse" />
+                <div className="relative z-10 flex flex-col gap-4">
+                  <div className="flex justify-between items-start">
+                    <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg">
+                      <Zap size={24} className="text-white fill-white" />
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Secure Node</span>
+                    </div>
                   </div>
-               </div>
-             )}
-
-             <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Neural Core Tools</h4>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <button onClick={() => setCurrentView(AppView.DEEPFAKE_SCAN)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group">
-                    <div className="p-4 bg-red-50 text-red-600 rounded-2xl w-fit mb-5 group-hover:bg-red-600 group-hover:text-white transition-all shadow-inner"><Video size={28} /></div>
-                    <h3 className="font-black text-slate-800">Deep Audit</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Video Forensic</p>
-                  </button>
-                  <button onClick={() => setCurrentView(AppView.SCAM_MONITOR)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group">
-                    <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl w-fit mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner"><Smartphone size={28} /></div>
-                    <h3 className="font-black text-slate-800">Scam Shield</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Intent Analysis</p>
-                  </button>
-                  <button onClick={() => setCurrentView(AppView.URL_SHIELD)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-200 transition-all active:scale-95 text-left group">
-                    <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner"><Globe size={28} /></div>
-                    <h3 className="font-black text-slate-800">Web Shield</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Link Verifier</p>
-                  </button>
-                  <button onClick={() => setCurrentView(AppView.PAYMENT_GUARD)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-200 transition-all active:scale-95 text-left group">
-                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><CreditCard size={28} /></div>
-                    <h3 className="font-black text-slate-800">Safe Pay</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">UPI Auditor</p>
-                  </button>
-                  <button onClick={() => setCurrentView(AppView.APK_SCANNER)} className="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200 active:scale-95 text-left group border border-slate-700 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12"><Cpu size={80} className="text-indigo-400" /></div>
-                    <div className="p-4 bg-white/10 text-indigo-400 rounded-2xl w-fit mb-5"><Cpu size={28} /></div>
-                    <h3 className="font-black text-white">APK Shield</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Malware Audit</p>
-                  </button>
-                  <button onClick={() => setCurrentView(AppView.ATDS)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group border-t-4 border-t-indigo-600 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12 group-hover:scale-110 transition-transform"><Activity size={80} className="text-indigo-600" /></div>
-                    <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner"><ShieldAlert size={28} /></div>
-                    <h3 className="font-black text-slate-800">Auto Detect</h3>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Neural Threat Logic</p>
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tighter uppercase leading-tight">Neural Pro Upgrade</h3>
+                    <p className="text-xs text-slate-400 font-bold mt-1 opacity-80">Unlimited Deepfake Audits & Real-time Interception</p>
+                  </div>
+                  <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-400 group-hover:text-white transition-colors">
+                    Explore Membership <ArrowUpRight size={14} />
                   </button>
                 </div>
-             </div>
+              </div>
+            )}
 
-             <button onClick={() => setCurrentView(AppView.SCAM_DATABASE)} className="w-full bg-slate-950 rounded-[40px] p-8 text-white flex items-center justify-between shadow-2xl active:scale-95 transition-all group overflow-hidden relative">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-2">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Neural Core Tools</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setCurrentView(AppView.DEEPFAKE_SCAN)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group">
+                  <div className="p-4 bg-red-50 text-red-600 rounded-2xl w-fit mb-5 group-hover:bg-red-600 group-hover:text-white transition-all shadow-inner"><Video size={28} /></div>
+                  <h3 className="font-black text-slate-800">Deep Audit</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Video Forensic</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.SCAM_MONITOR)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group">
+                  <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl w-fit mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner"><Smartphone size={28} /></div>
+                  <h3 className="font-black text-slate-800">Scam Shield</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Intent Analysis</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.URL_SHIELD)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-200 transition-all active:scale-95 text-left group">
+                  <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner"><Globe size={28} /></div>
+                  <h3 className="font-black text-slate-800">Web Shield</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Link Verifier</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.PAYMENT_GUARD)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:border-indigo-200 transition-all active:scale-95 text-left group">
+                  <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><CreditCard size={28} /></div>
+                  <h3 className="font-black text-slate-800">Safe Pay</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">UPI Auditor</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.APK_SCANNER)} className="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200 active:scale-95 text-left group border border-slate-700 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12"><Cpu size={80} className="text-indigo-400" /></div>
+                  <div className="p-4 bg-white/10 text-indigo-400 rounded-2xl w-fit mb-5"><Cpu size={28} /></div>
+                  <h3 className="font-black text-white">APK Shield</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Malware Audit</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.ATDS)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group border-t-4 border-t-indigo-600 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12 group-hover:scale-110 transition-transform"><Activity size={80} className="text-indigo-600" /></div>
+                  <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner"><ShieldAlert size={28} /></div>
+                  <h3 className="font-black text-slate-800">Auto Detect</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Neural Threat Logic</p>
+                </button>
+                <button onClick={() => setCurrentView(AppView.RANSOMWARE_SHIELD)} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 text-left group border-t-4 border-t-red-600 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12 group-hover:scale-110 transition-transform"><Lock size={80} className="text-red-600" /></div>
+                  <div className="p-4 bg-red-50 text-red-600 rounded-2xl w-fit mb-5 group-hover:bg-red-600 group-hover:text-white transition-all shadow-inner"><Activity size={28} /></div>
+                  <h3 className="font-black text-slate-800">Ransom Shield</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Entropy Guard</p>
+                </button>
+              </div>
+            </div>
+
+            <button onClick={() => setCurrentView(AppView.SCAM_DATABASE)} className="w-full bg-slate-950 rounded-[40px] p-8 text-white flex items-center justify-between shadow-2xl active:scale-95 transition-all group overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/20 to-transparent" />
               <div className="flex items-center gap-6 relative z-10">
                 <div className="p-5 bg-indigo-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform"><Database size={28} /></div>
@@ -209,7 +258,7 @@ const App: React.FC = () => {
               </div>
               <ChevronRight className="relative z-10 text-indigo-400 group-hover:translate-x-2 transition-transform" />
             </button>
-            
+
             <AdBanner />
           </div>
         );
@@ -226,7 +275,7 @@ const App: React.FC = () => {
             <span className="text-[7px] font-black uppercase tracking-[0.4em] text-indigo-600 mt-1">National Cyber Guard</span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button onClick={() => setShowUserMenu(!showUserMenu)} className="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100 text-indigo-600 active:scale-90 transition-all"><User size={20} /></button>
           {showUserMenu && (
@@ -250,17 +299,17 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-y-auto hide-scrollbar">
         {renderView()}
       </main>
-      
+
       <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-white/90 backdrop-blur-2xl border border-indigo-100 shadow-2xl rounded-[32px] flex justify-around p-3 z-40">
         {NAV_ITEMS.map(item => {
           const isSelected = currentView === item.id;
           const isSubscription = item.id === AppView.SUBSCRIPTION;
           const needsAttention = isSubscription && !currentUser?.isPro;
-          
+
           return (
-            <button 
-              key={item.id} 
-              onClick={() => setCurrentView(item.id as AppView)} 
+            <button
+              key={item.id}
+              onClick={() => setCurrentView(item.id as AppView)}
               className={`flex flex-col items-center p-3.5 rounded-[20px] transition-all duration-500 relative ${isSelected ? 'text-indigo-600 bg-indigo-50 shadow-inner' : 'text-slate-400 hover:text-slate-500'}`}
             >
               {needsAttention && !isSelected && (

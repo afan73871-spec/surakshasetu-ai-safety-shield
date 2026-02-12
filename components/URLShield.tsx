@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, RefreshCw, Zap, CheckCircle2, XCircle, ChevronLeft, Info, ShieldAlert, ExternalLink, Search, Lock, ShieldX } from 'lucide-react';
+import { Globe, RefreshCw, Zap, CheckCircle2, XCircle, ChevronLeft, Info, ShieldAlert, ExternalLink, Search, Lock, ShieldX, BrainCircuit } from 'lucide-react';
 import { analyzeWebsiteSafety, WebsiteSafetyResult } from '../services/geminiService';
 import { AdBanner } from './AdBanner';
 
@@ -18,7 +18,7 @@ export const URLShield: React.FC = () => {
     setIsScanningUrl(true);
     setUrlResult(null);
     setAuditLogs([]);
-    
+
     addLog("Connecting to DNS Registry...");
     addLog("Extracting WHOIS Metadata...");
 
@@ -40,7 +40,7 @@ export const URLShield: React.FC = () => {
   return (
     <div className="p-5 space-y-6 animate-in slide-in-from-right duration-500 pb-32 font-sans">
       <header className="flex flex-col items-center relative text-center space-y-4">
-        <button 
+        <button
           onClick={handleBack}
           className="absolute left-0 top-0 p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 shadow-sm active:scale-90 transition-all"
         >
@@ -59,12 +59,12 @@ export const URLShield: React.FC = () => {
         <div className="absolute -top-4 -right-4 p-8 opacity-[0.03] rotate-12 group-hover:scale-110 transition-transform">
           <Globe size={160} />
         </div>
-        
+
         <div className="space-y-4 relative z-10">
           <div className="space-y-2">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Link Verifier</h3>
             <div className="relative">
-              <input 
+              <input
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
@@ -77,7 +77,7 @@ export const URLShield: React.FC = () => {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={handleUrlScan}
             disabled={isScanningUrl || !urlInput}
             className="w-full py-5 bg-slate-900 text-white rounded-[28px] font-black text-xs uppercase tracking-[0.3em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
@@ -113,6 +113,18 @@ export const URLShield: React.FC = () => {
               <div className="bg-white/80 p-4 rounded-2xl border border-black/5">
                 <p className="text-[10px] text-slate-500 font-bold leading-relaxed italic uppercase">"{urlResult.warning}"</p>
               </div>
+
+              <button
+                onClick={() => {
+                  const event = new CustomEvent('ask-suraksha-ai', {
+                    detail: { question: `Explain why this URL is flagged: "${urlInput}". AI Warning: "${urlResult.warning}". Is it safe to open?` }
+                  });
+                  window.dispatchEvent(event);
+                }}
+                className="w-full py-4 bg-white border border-indigo-200 rounded-[28px] text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <BrainCircuit size={16} /> Deep AI Explainer
+              </button>
             </div>
           </div>
         )}
