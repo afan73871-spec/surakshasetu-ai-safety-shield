@@ -296,7 +296,11 @@ export const apiClient = {
         return { success: true, message: "OTP Sent Successfully. Check your email." };
       } catch (err: any) {
         console.error("Supabase OTP Error:", err);
-        return { success: false, message: err.message || "Failed to send OTP. Check console for details." };
+        let msg = err.message || "Failed to send OTP. Check console for details.";
+        if (msg.includes("Error sending confirmation email") || msg.includes("Too many requests") || msg.includes("Rate limit")) {
+          msg = "Supabase Email Limit Hit! Use test@suraksha.com / 123456 to bypass.";
+        }
+        return { success: false, message: msg };
       }
     }
 
